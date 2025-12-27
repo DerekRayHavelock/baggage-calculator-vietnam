@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnam Domestic Flight Baggage Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        }
+
+        .baggage-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 24px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 32px;
+            padding: 24px;
+            border-radius: 12px;
+            background: #f7fafc;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-item.success {
+            background: #c6f6d5;
+            border-left: 4px solid #38a169;
+        }
+
+        .result-item.warning {
+            background: #fed7d7;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .result-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .result-detail {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #2c5282;
+            line-height: 1.6;
+        }
+
+        .beta-badge {
+            display: inline-block;
+            background: #fbbf24;
+            color: #78350f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .baggage-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇻🇳 Vietnam Domestic Flight Baggage Calculator <span class="beta-badge">BETA</span></h1>
+        <p class="subtitle">Check your baggage allowance before you pack • Save money on excess fees</p>
+
+        <div class="form-group">
+            <label for="airline">Select Airline</label>
+            <select id="airline">
+                <option value="">Choose your airline...</option>
+                <option value="vna">Vietnam Airlines</option>
+                <option value="vietjet">VietJet Air</option>
+                <option value="bamboo">Bamboo Airways</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="fareTypeGroup" style="display: none;">
+            <label for="fareType">Select Fare Type</label>
+            <select id="fareType">
+                <option value="">Choose your fare type...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Baggage Weights (in kilograms)</label>
+            <div class="baggage-inputs">
+                <div>
+                    <label for="cabin" style="font-weight: 400; font-size: 13px; color: #718096;">Cabin Baggage (kg)</label>
+                    <input type="number" id="cabin" step="0.1" min="0" max="50" placeholder="e.g., 6.5">
+                </div>
+                <div>
+                    <label for="checked" style="font-weight: 400; font-size: 13px; color: #718096;">Checked Baggage (kg)</label>
+                    <input type="number" id="checked" step="0.1" min="0" max="100" placeholder="e.g., 18.0">
+                </div>
+            </div>
+        </div>
+
+        <button onclick="calculate()">Calculate Baggage Allowance</button>
+
+        <div class="results" id="results"></div>
+
+        <div class="info-box">
+            <strong>💡 Pro Tips:</strong><br>
+            • Pre-purchase baggage online to save 50-70% vs airport rates<br>
+            • VietJet is STRICT: 7kg cabin limit enforced at gate<br>
+            • Vietnam Airlines started gate enforcement Nov 2025<br>
+            • Maximum 32kg per individual checked bag<br>
+            • Book baggage at least 3 hours before departure
+        </div>
+    </div>
+
+    <script>
+        const airlineData = {
+            vna: {
+                name: "Vietnam Airlines",
+                cabinLimits: {
+                    economy: 12,
+                    premiumeconomy: 12,
+                    business: 18
+                },
+                fares: {
+                    economy: { name: "Economy Class", checked: 23, cabin: 12 },
+                    premiumeconomy: { name: "Premium Economy (NEW Jan 2025)", checked: 32, cabin: 12 },
+                    business: { name: "Business Class", checked: 32, cabin: 18 }
+                },
+                prepaidFee: 400000,
+                airportFee: 800000,
+                gateFee: 600000,
+                currency: "VND",
+                note: "Gate fees started Nov 2025"
+            },
+            vietjet: {
+                name: "VietJet Air",
+                cabinLimits: {
+                    eco: 7,
+                    deluxe: 7,
+                    skyboss: 7
+                },
+                fares: {
+                    eco: { name: "Eco Fare (No baggage)", checked: 0, cabin: 7 },
+                    deluxe: { name: "Deluxe Fare (20kg included)", checked: 20, cabin: 7 },
+                    skyboss: { name: "SkyBoss Fare (30kg included)", checked: 30, cabin: 7 }
+                },
+                prepaidFee: 225000,
+                airportMinFee: 330000,
+                perKgFee: 44000,
+                currency: "VND",
+                note: "STRICT 7kg - weighs at check-in AND gate"
+            },
+            bamboo: {
+                name: "Bamboo Airways",
+                cabinLimits: {
+                    eco: 7,
+                    plus: 7,
+                    business: 14
+                },
+                fares: {
+                    eco: { name: "Bamboo Eco (0-10kg varies)", checked: 0, cabin: 7 },
+                    plus: { name: "Bamboo Plus (20kg included)", checked: 20, cabin: 7 },
+                    business: { name: "Bamboo Business (30kg included)", checked: 30, cabin: 14 }
+                },
+                gateFeePerKg: 50000,
+                currency: "VND",
+                note: "70% savings when pre-purchasing; packages round up at airport"
+            }
+        };
+
+        document.getElementById('airline').addEventListener('change', function() {
+            const airline = this.value;
+            const fareTypeGroup = document.getElementById('fareTypeGroup');
+            const fareTypeSelect = document.getElementById('fareType');
+            const results = document.getElementById('results');
+            
+            fareTypeGroup.style.display = airline ? 'block' : 'none';
+            fareTypeSelect.innerHTML = '<option value="">Choose your fare type...</option>';
+            
+            if (airline && airlineData[airline]) {
+                const fares = airlineData[airline].fares;
+                for (const [key, fare] of Object.entries(fares)) {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = fare.name;
+                    fareTypeSelect.appendChild(option);
+                }
+            }
+            
+            results.classList.remove('show');
+        });
+
+        function calculate() {
+            const airlineCode = document.getElementById('airline').value;
+            const fareCode = document.getElementById('fareType').value;
+            const cabinWeight = parseFloat(document.getElementById('cabin').value);
+            const checkedWeight = parseFloat(document.getElementById('checked').value);
+            
+            if (!airlineCode) {
+                alert('Please select an airline');
+                return;
+            }
+            
+            if (!fareCode) {
+                alert('Please select a fare type');
+                return;
+            }
+            
+            if (isNaN(cabinWeight) || isNaN(checkedWeight)) {
+                alert('Please enter valid numbers for baggage weights');
+                return;
+            }
+            
+            const airline = airlineData[airlineCode];
+            const fare = airline.fares[fareCode];
+            
+            const cabinAllowed = fare.cabin;
+            const checkedAllowed = fare.checked;
+            
+            const cabinOver = Math.max(0, cabinWeight - cabinAllowed);
+            const checkedOver = Math.max(0, checkedWeight - checkedAllowed);
+            
+            let resultsHTML = '';
+            
+            // Cabin baggage result
+            if (cabinOver === 0) {
+                resultsHTML += `
+                    <div class="result-item success">
+                        <div class="result-title">✅ Cabin Baggage: Within Limits</div>
+                        <div class="result-detail">
+                            Your cabin baggage (<span class="highlight">${cabinWeight} kg</span>) is within the 
+                            <span class="highlight">${cabinAllowed} kg</span> limit. You're good to go!
+                        </div>
+                    </div>
+                `;
+            } else {
+                let cabinFeeInfo = '';
+                if (airlineCode === 'vna') {
+                    cabinFeeInfo = `<br><br><strong>⚠️ NEW Gate Fee (started Nov 2025):</strong> ${airline.currency} ${airline.gateFee.toLocaleString()} per piece at boarding gate.`;
+                } else if (airlineCode === 'vietjet') {
+                    cabinFeeInfo = `<br><br><strong>⚠️ STRICT ENFORCEMENT:</strong> VietJet weighs at check-in AND at the gate. You MUST be under 7kg total (main bag + laptop bag combined).`;
+                } else if (airlineCode === 'bamboo') {
+                    const bambooFee = Math.ceil(cabinOver) * airline.gateFeePerKg;
+                    cabinFeeInfo = `<br><br><strong>Gate Fee:</strong> ${airline.currency} ${bambooFee.toLocaleString()} (${airline.currency} ${airline.gateFeePerKg.toLocaleString()}/kg × ${Math.ceil(cabinOver)} kg)`;
+                }
+                
+                resultsHTML += `
+                    <div class="result-item warning">
+                        <div class="result-title">⚠️ Cabin Baggage: Over Limit</div>
+                        <div class="result-detail">
+                            Your cabin baggage (<span class="highlight">${cabinWeight} kg</span>) exceeds the 
+                            <span class="highlight">${cabinAllowed} kg</span> limit by <span class="highlight">${cabinOver.toFixed(1)} kg</span>.
+                            ${cabinFeeInfo}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Checked baggage result
+            if (checkedAllowed === 0) {
+                if (checkedWeight > 0) {
+                    let feeInfo = '';
+                    if (airlineCode === 'vna') {
+                        feeInfo = `
+                            <strong>Options:</strong><br>
+                            • Pre-purchase online: <span class="highlight">${airline.currency} ${airline.prepaidFee.toLocaleString()}</span> for 23kg - CHEAPEST<br>
+                            • Pay at airport: <span class="highlight">${airline.currency} ${airline.airportFee.toLocaleString()}</span> for 23kg<br>
+                            💰 <strong>Save ${airline.currency} ${(airline.airportFee - airline.prepaidFee).toLocaleString()} (50%) by pre-purchasing!</strong>
+                        `;
+                    } else if (airlineCode === 'vietjet') {
+                        const prepaid20 = airline.prepaidFee;
+                        const airportMin = airline.airportMinFee;
+                        feeInfo = `
+                            <strong>Options:</strong><br>
+                            • Pre-purchase 20kg online: approximately <span class="highlight">${airline.currency} ${prepaid20.toLocaleString()}</span> - CHEAPEST<br>
+                            • Airport minimum (15kg): <span class="highlight">${airline.currency} ${airportMin.toLocaleString()}</span><br>
+                            • Per kg over 15kg: ${airline.currency} ${airline.perKgFee.toLocaleString()}/kg<br>
+                            💰 <strong>Airport rates are nearly DOUBLE online prices!</strong>
+                        `;
+                    } else if (airlineCode === 'bamboo') {
+                        feeInfo = `
+                            <strong>Options:</strong><br>
+                            • Pre-purchase online: <span class="highlight">70% CHEAPER</span> than airport (contact airline for exact rates)<br>
+                            • At airport: Sold in packages (rounds up - e.g., 11kg = pay for 15kg package)<br>
+                            💰 <strong>Bamboo has the BIGGEST pre-purchase discount (70%)</strong>
+                        `;
+                    }
+                    
+                    resultsHTML += `
+                        <div class="result-item warning">
+                            <div class="result-title">⚠️ Checked Baggage: No Allowance Included</div>
+                            <div class="result-detail">
+                                Your fare (<span class="highlight">${fare.name}</span>) includes <span class="highlight">NO free checked baggage</span>.<br>
+                                You have <span class="highlight">${checkedWeight} kg</span> to check in.<br><br>
+                                ${feeInfo}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsHTML += `
+                        <div class="result-item success">
+                            <div class="result-title">✅ Checked Baggage: No Bag to Check</div>
+                            <div class="result-detail">
+                                Your fare (<span class="highlight">${fare.name}</span>) includes no free checked baggage, but you're not checking any bags. Perfect!
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (checkedOver === 0) {
+                    resultsHTML += `
+                        <div class="result-item success">
+                            <div class="result-title">✅ Checked Baggage: Within Limits</div>
+                            <div class="result-detail">
+                                Your checked baggage (<span class="highlight">${checkedWeight} kg</span>) is within your 
+                                <span class="highlight">${checkedAllowed} kg</span> allowance. No excess fees!
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    let excessInfo = '';
+                    if (airlineCode === 'vna') {
+                        excessInfo = `
+                            <strong>Excess baggage fees:</strong><br>
+                            • Pre-purchase online: <span class="highlight">${airline.currency} ${airline.prepaidFee.toLocaleString()}</span> for 23kg extra<br>
+                            • At airport: <span class="highlight">${airline.currency} ${airline.airportFee.toLocaleString()}</span> for 23kg extra<br><br>
+                            💡 <strong>Save ${airline.currency} ${(airline.airportFee - airline.prepaidFee).toLocaleString()} (50%) by pre-purchasing online!</strong>
+                        `;
+                    } else if (airlineCode === 'vietjet') {
+                        const kgsNeeded = Math.ceil(checkedOver);
+                        const airportCost = airline.airportMinFee + (Math.max(0, kgsNeeded - 15) * airline.perKgFee);
+                        excessInfo = `
+                            <strong>You need approximately ${kgsNeeded} kg more:</strong><br>
+                            • Pre-purchase online: Much cheaper (buy 5kg increments)<br>
+                            • At airport: approximately <span class="highlight">${airline.currency} ${airportCost.toLocaleString()}</span><br><br>
+                            💡 <strong>Pre-purchasing saves 50-100%!</strong>
+                        `;
+                    } else if (airlineCode === 'bamboo') {
+                        excessInfo = `
+                            <strong>You're ${checkedOver.toFixed(1)} kg over:</strong><br>
+                            • Pre-purchase online: <span class="highlight">70% discount</span> vs airport<br>
+                            • Airport: Packages round up (${Math.ceil(checkedOver)} kg rounds to next package size)<br><br>
+                            💡 <strong>Bamboo offers the biggest savings when pre-purchasing!</strong>
+                        `;
+                    }
+                    
+                    resultsHTML += `
+                        <div class="result-item warning">
+                            <div class="result-title">⚠️ Checked Baggage: Over Limit</div>
+                            <div class="result-detail">
+                                Your checked baggage (<span class="highlight">${checkedWeight} kg</span>) exceeds your 
+                                <span class="highlight">${checkedAllowed} kg</span> allowance by <span class="highlight">${checkedOver.toFixed(1)} kg</span>.<br><br>
+                                ${excessInfo}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Weight limit warning
+            if (checkedWeight > 32) {
+                resultsHTML += `
+                    <div class="result-item warning">
+                        <div class="result-title">⚠️ Weight Limit Exceeded</div>
+                        <div class="result-detail">
+                            Your bag weighs <span class="highlight">${checkedWeight} kg</span>, but the maximum weight per individual bag is 
+                            <span class="highlight">32 kg</span> for safety reasons (all Vietnamese airlines).<br>
+                            You MUST split this into multiple bags.
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Airline-specific notes
+            if (airlineCode === 'vna' && fare.name.includes('Premium Economy')) {
+                resultsHTML += `
+                    <div class="result-item" style="background: #e6fffa; border-left: 4px solid #319795;">
+                        <div class="result-title">✨ Premium Economy - NEW Class!</div>
+                        <div class="result-detail">
+                            Premium Economy launched January 14, 2025. You get 32kg checked (same as Business) at a lower price point!
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('results').innerHTML = resultsHTML;
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+</body>
+</html>
